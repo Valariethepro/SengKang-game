@@ -77,8 +77,41 @@
         .timer-box {
             font-size: 1.2rem;
             color: var(--accent-gold);
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             font-weight: bold;
+        }
+
+        /* Streak Bubble Design */
+        .streak-container {
+            min-height: 35px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .streak-bubble {
+            background: rgba(255, 215, 0, 0.15);
+            border: 2px solid var(--accent-gold);
+            color: var(--accent-gold);
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            animation: popIn 0.3s ease-out;
+        }
+
+        .streak-bubble.lost {
+            background: rgba(231, 29, 54, 0.15);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
 
         .lyric-box {
@@ -180,7 +213,10 @@
             <span>Score: <span id="score">0</span></span>
         </div>
 
-        <div class="timer-box" id="timer-display">⏱️ Time Left: 15s</div>
+        <div class="timer-box" id="timer-display">⏱️ Time Left: 20s</div>
+        
+        <!-- Center Streak Bubble Container -->
+        <div class="streak-container" id="streak-container"></div>
 
         <div class="lyric-box" id="lyric-prompt">
             Loading song lyrics...
@@ -221,15 +257,18 @@
 
     let currentRound = 0;
     let score = 0;
-    let timeLeft = 15;
+    let timeLeft = 20;
     let timerInterval;
+
+    let currentStreak = 0;
+    let hasStartedStreak = false;
 
     let lifeline1Used = false;
     let lifeline2Used = false;
     let lifeline3Used = false;
 
     function startTimer() {
-        timeLeft = 15;
+        timeLeft = 20;
         document.getElementById('timer-display').innerText = `⏱️ Time Left: ${timeLeft}s`;
         clearInterval(timerInterval);
         
@@ -241,6 +280,19 @@
                 timeOutAnswer();
             }
         }, 1000);
+    }
+
+    function updateStreakDisplay(status, text) {
+        const container = document.getElementById('streak-container');
+        if (status === 'none') {
+            container.innerHTML = '';
+            return;
+        }
+        if (status === 'active') {
+            container.innerHTML = `<div class="streak-bubble">🔥 Streak ×${currentStreak}</div>`;
+        } else if (status === 'lost') {
+            container.innerHTML = `<div class="streak-bubble lost">❌ Streak Lost!</div>`;
+        }
     }
 
     function loadRound() {
@@ -261,6 +313,14 @@
         const feedback = document.getElementById('feedback');
         feedback.className = 'feedback wrong';
         feedback.innerText = `⏰ Time's up! The answer was: "${targetAns}"`;
+
+        if (hasStartedStreak && currentStreak > 0) {
+            currentStreak = 0;
+            updateStreakDisplay('lost');
+        } else {
+            updateStreakDisplay('none');
+        }
+
         nextRound(2500);
     }
 
@@ -275,10 +335,25 @@
             document.getElementById('score').innerText = score;
             feedback.className = 'feedback correct';
             feedback.innerText = 'Correct! Breakthrough!';
+
+            // Update streak
+            hasStartedStreak = true;
+            currentStreak++;
+            updateStreakDisplay('active');
+
             nextRound(1500);
         } else {
             feedback.className = 'feedback wrong';
             feedback.innerText = `Wrong! The correct lyric was: "${targetAns}"`;
+
+            // Handle streak loss
+            if (hasStartedStreak && currentStreak > 0) {
+                currentStreak = 0;
+                updateStreakDisplay('lost');
+            } else {
+                updateStreakDisplay('none');
+            }
+
             nextRound(2500);
         }
     }
@@ -332,6 +407,10 @@
     function restartGame() {
         currentRound = 0;
         score = 0;
+        currentStreak = 0;
+        hasStartedStreak = false;
+        updateStreakDisplay('none');
+
         lifeline1Used = false;
         lifeline2Used = false;
         lifeline3Used = false;
