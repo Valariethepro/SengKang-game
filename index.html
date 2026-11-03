@@ -176,7 +176,7 @@
 
     <div id="game-screen">
         <div class="status-bar">
-            <span>Round <span id="round-num">1</span>/5</span>
+            <span>Round <span id="round-num">1</span>/10</span>
             <span>Score: <span id="score">0</span></span>
         </div>
 
@@ -199,7 +199,7 @@
     </div>
 
     <div id="end-screen" class="hidden">
-        <h2>Game Over!</h2>
+        <h2>Challenge Complete!</h2>
         <p style="margin: 15px 0; font-size: 1.2rem;">Your final score: <span id="final-score" style="color: var(--accent-gold); font-weight: bold;">0</span></p>
         <button class="btn" onclick="restartGame()">Play Again</button>
     </div>
@@ -207,31 +207,16 @@
 
 <script>
     const lyricsData = [
-        {
-            before: "Hold on! With the anchor to ",
-            missing: "what we believe",
-            after: "!"
-        },
-        {
-            before: "Team up! Take the rope! ",
-            missing: "Together we'll achieve",
-            after: "!"
-        },
-        {
-            before: "Breakthrough with ",
-            missing: "heart and mind and soul",
-            after: "."
-        },
-        {
-            before: "Breakthrough for ",
-            missing: "Seng Kang Secondary",
-            after: "."
-        },
-        {
-            before: "In this school we share one vision to which we all ",
-            missing: "aspire",
-            after: "."
-        }
+        { before: "Hold on! With the anchor to ", missing: "what we believe", after: "!" },
+        { before: "Team up! Take the rope! ", missing: "Together we'll achieve", after: "!" },
+        { before: "Breakthrough with ", missing: "heart and mind and soul", after: "." },
+        { before: "Breakthrough for ", missing: "Seng Kang Secondary", after: "." },
+        { before: "In this school we share one vision to which we all ", missing: "aspire", after: "." },
+        { before: "With courage and conviction, we face each ", missing: "new tomorrow", after: "." },
+        { before: "Striving for excellence in all that we ", missing: "undertake", after: "." },
+        { before: "Guided by integrity, every step we ", missing: "carefully make", after: "." },
+        { before: "United as an anchor family, standing ", missing: "strong and proud", after: "." },
+        { before: "Seng Kang Secondary, our heritage we shout out ", missing: "aloud", after: "!" }
     ];
 
     let currentRound = 0;
@@ -286,7 +271,7 @@
         const feedback = document.getElementById('feedback');
 
         if (cleanString(userAns) === cleanString(targetAns)) {
-            score += (100 + timeLeft * 5); // Bonus points for speed!
+            score += (100 + timeLeft * 5);
             document.getElementById('score').innerText = score;
             feedback.className = 'feedback correct';
             feedback.innerText = 'Correct! Breakthrough!';
