@@ -81,7 +81,6 @@
             font-weight: bold;
         }
 
-        /* Streak Bubble Design */
         .streak-container {
             min-height: 35px;
             margin-bottom: 12px;
@@ -215,7 +214,6 @@
 
         <div class="timer-box" id="timer-display">⏱️ Time Left: 20s</div>
         
-        <!-- Center Streak Bubble Container -->
         <div class="streak-container" id="streak-container"></div>
 
         <div class="lyric-box" id="lyric-prompt">
@@ -243,16 +241,16 @@
 
 <script>
     const lyricsData = [
+        { before: "In this school we share one vision to which we all ", missing: "aspire", after: "." },
+        { before: "To raise our skills and knowledge undaunted ever ", missing: "higher", after: "." },
+        { before: "United in this purpose to succeed in all ", missing: "we do", after: "." },
+        { before: "At home at work for all our ", missing: "nation's good", after: "." },
+        { before: "Our goal is to ", missing: "breakthrough", after: "!" },
         { before: "Hold on! With the anchor to ", missing: "what we believe", after: "!" },
         { before: "Team up! Take the rope! ", missing: "Together we'll achieve", after: "!" },
         { before: "Breakthrough with ", missing: "heart and mind and soul", after: "." },
         { before: "Breakthrough for ", missing: "Seng Kang Secondary", after: "." },
-        { before: "In this school we share one vision to which we all ", missing: "aspire", after: "." },
-        { before: "With courage and conviction, we face each ", missing: "new tomorrow", after: "." },
-        { before: "Striving for excellence in all that we ", missing: "undertake", after: "." },
-        { before: "Guided by integrity, every step we ", missing: "carefully make", after: "." },
-        { before: "United as an anchor family, standing ", missing: "strong and proud", after: "." },
-        { before: "Seng Kang Secondary, our heritage we shout out ", missing: "aloud", after: "!" }
+        { before: "", missing: "Breakthrough", after: "!" }
     ];
 
     let currentRound = 0;
@@ -282,7 +280,7 @@
         }, 1000);
     }
 
-    function updateStreakDisplay(status, text) {
+    function updateStreakDisplay(status) {
         const container = document.getElementById('streak-container');
         if (status === 'none') {
             container.innerHTML = '';
@@ -336,7 +334,6 @@
             feedback.className = 'feedback correct';
             feedback.innerText = 'Correct! Breakthrough!';
 
-            // Update streak
             hasStartedStreak = true;
             currentStreak++;
             updateStreakDisplay('active');
@@ -346,7 +343,6 @@
             feedback.className = 'feedback wrong';
             feedback.innerText = `Wrong! The correct lyric was: "${targetAns}"`;
 
-            // Handle streak loss
             if (hasStartedStreak && currentStreak > 0) {
                 currentStreak = 0;
                 updateStreakDisplay('lost');
