@@ -70,7 +70,14 @@
             background: rgba(0, 0, 0, 0.2);
             padding: 10px 16px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .timer-box {
+            font-size: 1.2rem;
+            color: var(--accent-gold);
+            margin-bottom: 15px;
             font-weight: bold;
         }
 
@@ -128,19 +135,21 @@
 
         .lifelines {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-top: 15px;
+            justify-content: center;
         }
 
         .btn-lifeline {
             background-color: #3a86ff;
-            font-size: 0.85rem;
-            padding: 8px 12px;
+            font-size: 0.8rem;
+            padding: 8px 10px;
+            flex: 1;
         }
 
         .btn-lifeline:disabled {
             background-color: #555;
-            opacity: 0.5;
+            opacity: 0.4;
             cursor: not-allowed;
         }
 
@@ -171,6 +180,8 @@
             <span>Score: <span id="score">0</span></span>
         </div>
 
+        <div class="timer-box" id="timer-display">⏱️ Time Left: 15s</div>
+
         <div class="lyric-box" id="lyric-prompt">
             Loading song lyrics...
         </div>
@@ -179,7 +190,9 @@
         <button class="btn" id="submit-btn" onclick="checkAnswer()">Lock In Answer</button>
 
         <div class="lifelines">
-            <button class="btn btn-lifeline" id="hint-btn" onclick="useHint()">Hint (First Letter)</button>
+            <button class="btn btn-lifeline" id="hint1-btn" onclick="useFirstLetter()">Hint (1st Letter)</button>
+            <button class="btn btn-lifeline" id="hint2-btn" onclick="useLengthClue()">Word Count Clue</button>
+            <button class="btn btn-lifeline" id="skip-btn" onclick="skipRound()">Skip Round</button>
         </div>
 
         <div class="feedback" id="feedback"></div>
@@ -223,7 +236,27 @@
 
     let currentRound = 0;
     let score = 0;
-    let hintUsed = false;
+    let timeLeft = 15;
+    let timerInterval;
+
+    let lifeline1Used = false;
+    let lifeline2Used = false;
+    let lifeline3Used = false;
+
+    function startTimer() {
+        timeLeft = 15;
+        document.getElementById('timer-display').innerText = `⏱️ Time Left: ${timeLeft}s`;
+        clearInterval(timerInterval);
+        
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer-display').innerText = `⏱️ Time Left: ${timeLeft}s`;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                timeOutAnswer();
+            }
+        }, 1000);
+    }
 
     function loadRound() {
         const data = lyricsData[currentRound];
@@ -231,60 +264,81 @@
         document.getElementById('lyric-prompt').innerHTML = `"${data.before}<span class="missing-blank">???</span>${data.after}"`;
         document.getElementById('user-input').value = '';
         document.getElementById('feedback').innerText = '';
-        document.getElementById('hint-btn').disabled = false;
-        hintUsed = false;
+        startTimer();
     }
 
     function cleanString(str) {
         return str.toLowerCase().replace(/[^\w\s]/gi, '').trim();
     }
 
+    function timeOutAnswer() {
+        const targetAns = lyricsData[currentRound].missing;
+        const feedback = document.getElementById('feedback');
+        feedback.className = 'feedback wrong';
+        feedback.innerText = `⏰ Time's up! The answer was: "${targetAns}"`;
+        nextRound(2500);
+    }
+
     function checkAnswer() {
+        clearInterval(timerInterval);
         const userAns = document.getElementById('user-input').value;
         const targetAns = lyricsData[currentRound].missing;
         const feedback = document.getElementById('feedback');
 
         if (cleanString(userAns) === cleanString(targetAns)) {
-            score += 100;
+            score += (100 + timeLeft * 5); // Bonus points for speed!
             document.getElementById('score').innerText = score;
             feedback.className = 'feedback correct';
             feedback.innerText = 'Correct! Breakthrough!';
-            
-            setTimeout(() => {
-                currentRound++;
-                if (currentRound < lyricsData.length) {
-                    loadRound();
-                } else {
-                    endGame();
-                }
-            }, 1500);
+            nextRound(1500);
         } else {
             feedback.className = 'feedback wrong';
             feedback.innerText = `Wrong! The correct lyric was: "${targetAns}"`;
-            
-            setTimeout(() => {
-                currentRound++;
-                if (currentRound < lyricsData.length) {
-                    loadRound();
-                } else {
-                    endGame();
-                }
-            }, 2500);
+            nextRound(2500);
         }
     }
 
-    function useHint() {
-        if (hintUsed) return;
+    function nextRound(delay) {
+        setTimeout(() => {
+            currentRound++;
+            if (currentRound < lyricsData.length) {
+                loadRound();
+            } else {
+                endGame();
+            }
+        }, delay);
+    }
+
+    function useFirstLetter() {
+        if (lifeline1Used) return;
         const targetAns = lyricsData[currentRound].missing;
-        const firstLetter = targetAns.charAt(0);
-        const feedback = document.getElementById('feedback');
-        feedback.className = 'feedback';
-        feedback.innerText = `Hint: The missing phrase starts with '${firstLetter.toUpperCase()}'`;
-        document.getElementById('hint-btn').disabled = true;
-        hintUsed = true;
+        document.getElementById('feedback').className = 'feedback';
+        document.getElementById('feedback').innerText = `Hint: Starts with '${targetAns.charAt(0).toUpperCase()}'`;
+        document.getElementById('hint1-btn').disabled = true;
+        lifeline1Used = true;
+    }
+
+    function useLengthClue() {
+        if (lifeline2Used) return;
+        const words = lyricsData[currentRound].missing.split(' ').length;
+        document.getElementById('feedback').className = 'feedback';
+        document.getElementById('feedback').innerText = `Clue: Missing phrase contains ${words} word(s).`;
+        document.getElementById('hint2-btn').disabled = true;
+        lifeline2Used = true;
+    }
+
+    function skipRound() {
+        if (lifeline3Used) return;
+        clearInterval(timerInterval);
+        document.getElementById('feedback').className = 'feedback';
+        document.getElementById('feedback').innerText = 'Round Skipped!';
+        document.getElementById('skip-btn').disabled = true;
+        lifeline3Used = true;
+        nextRound(1000);
     }
 
     function endGame() {
+        clearInterval(timerInterval);
         document.getElementById('game-screen').classList.add('hidden');
         document.getElementById('end-screen').classList.remove('hidden');
         document.getElementById('final-score').innerText = score;
@@ -293,6 +347,12 @@
     function restartGame() {
         currentRound = 0;
         score = 0;
+        lifeline1Used = false;
+        lifeline2Used = false;
+        lifeline3Used = false;
+        document.getElementById('hint1-btn').disabled = false;
+        document.getElementById('hint2-btn').disabled = false;
+        document.getElementById('skip-btn').disabled = false;
         document.getElementById('score').innerText = 0;
         document.getElementById('end-screen').classList.add('hidden');
         document.getElementById('game-screen').classList.remove('hidden');
