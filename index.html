@@ -329,15 +329,19 @@
         const feedback = document.getElementById('feedback');
 
         if (cleanString(userAns) === cleanString(targetAns)) {
-            score += (100 + timeLeft * 5);
-            document.getElementById('score').innerText = score;
-            feedback.className = 'feedback correct';
-            feedback.innerText = 'Correct! Breakthrough!';
-
             hasStartedStreak = true;
             currentStreak++;
-            updateStreakDisplay('active');
 
+            // Base score (100) + Speed Bonus + Streak Bonus (+100 per streak count)
+            const streakBonus = currentStreak * 100;
+            const roundPoints = 100 + (timeLeft * 5) + streakBonus;
+            score += roundPoints;
+            
+            document.getElementById('score').innerText = score;
+            feedback.className = 'feedback correct';
+            feedback.innerText = `Correct! Breakthrough! (+${streakBonus} Streak Bonus!)`;
+
+            updateStreakDisplay('active');
             nextRound(1500);
         } else {
             feedback.className = 'feedback wrong';
